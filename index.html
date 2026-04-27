@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tributify</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #070C18;
+      --surface: #0E1628;
+      --card:    #131D33;
+      --border:  rgba(0,229,160,0.12);
+      --green:   #00E5A0;
+      --cyan:    #00C4E8;
+      --red:     #FF5370;
+      --text:    #E8F0FE;
+      --muted:   #5A6A8A;
+      --radius:  18px;
+      --header-h: 68px;
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; }
+
+    header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); background: rgba(7,12,24,0.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; z-index: 100; }
+
+    .logo-slot { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    .logo-slot img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+
+    .header-brand { display: flex; flex-direction: column; gap: 1px; }
+    .app-title { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.3px; color: #fff; line-height: 1; }
+    .app-title span { color: var(--green); }
+    .app-sub { font-size: 9px; letter-spacing: 2.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+    .header-spacer { flex: 1; }
+    .header-badge { display: flex; align-items: center; gap: 6px; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); border-radius: 8px; padding: 6px 12px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--green); letter-spacing: 0.05em; }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+    .page { padding-top: var(--header-h); min-height: 100vh; display: flex; flex-direction: column; }
+
+    .desktop-layout { display: none; flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 32px 32px 60px; gap: 28px; align-items: flex-start; }
+    .col-left  { width: 370px; flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; position: sticky; top: calc(var(--header-h) + 20px); }
+    .col-right { flex: 1; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+    .mobile-layout { display: flex; flex-direction: column; padding: 20px 16px 60px; gap: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
+
+    .scan-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .scan-card-header { padding: 14px 20px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .scan-label { font-size: 11px; letter-spacing: 2px; color: var(--green); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
+    .status-dot.active { background: var(--green); animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.4); } 50% { box-shadow: 0 0 0 6px rgba(0,229,160,0); } }
+
+    .qr-wrap { position: relative; }
+    .qr-reader-el { width: 100%; min-height: 210px; background: #050911; }
+    .qr-reader-el video { width: 100% !important; border-radius: 0 !important; }
+    .qr-reader-el img { display: none !important; }
+    .qr-reader-el > div:last-child { display: none !important; }
+    .scan-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; }
+    .scan-frame { width: 140px; height: 140px; position: relative; }
+    .scan-frame::before, .scan-frame::after, .scan-frame span::before, .scan-frame span::after { content: ''; position: absolute; width: 20px; height: 20px; border-color: var(--green); border-style: solid; }
+    .scan-frame::before      { top:0;left:0;     border-width: 2px 0 0 2px; }
+    .scan-frame::after       { top:0;right:0;    border-width: 2px 2px 0 0; }
+    .scan-frame span::before { bottom:0;left:0;  border-width: 0 0 2px 2px; }
+    .scan-frame span::after  { bottom:0;right:0; border-width: 0 2px 2px 0; }
+    .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); animation: scanline 2s ease-in-out infinite; top: 10%; }
+    @keyframes scanline { 0% { top:10%; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top:90%; opacity:0; } }
+    .scan-card-footer { padding: 12px 18px; display: flex; gap: 10px; }
+
+    .btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--green), var(--cyan)); color: #070C18; }
+    .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.09); }
+
+    .search-wrap { position: relative; }
+    .search-row { display: flex; gap: 10px; }
+    .search-input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%; }
+    .search-input::placeholder { color: var(--muted); }
+    .search-input:focus { border-color: var(--green); }
+    .btn-search { background: linear-gradient(135deg, var(--green), var(--cyan)); border: none; border-radius: 12px; padding: 0 18px; cursor: pointer; color: #070C18; font-size: 17px; transition: opacity 0.2s, transform 0.2s; }
+    .btn-search:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; z-index: 50; box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: none; }
+    .suggestions.open { display: block; }
+    .suggestion-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background: rgba(0,229,160,0.07); }
+    .sug-icon { font-size: 18px; flex-shrink: 0; }
+    .sug-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .sug-name { font-size: 13px; font-weight: 500; color: var(--text); }
+    .sug-brand { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .no-results { padding: 14px 16px; font-size: 12px; color: var(--muted); text-align: center; }
+
+    .loading-bar { display: none; height: 2px; background: linear-gradient(90deg, var(--green), var(--cyan), var(--green)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; border-radius: 99px; margin-top: 6px; }
+    .loading-bar.active { display: block; }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    .results { display: none; flex-direction: column; gap: 16px; animation: fadeUp 0.4s ease; }
+    .results.visible { display: flex; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+    .product-info { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; display: flex; gap: 14px; align-items: center; }
+    .product-thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: contain; background: rgba(255,255,255,0.04); flex-shrink: 0; }
+    .product-icon { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,196,232,0.12)); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+    .product-details h2 { font-family: 'DM Serif Display', serif; font-size: 17px; color: #fff; margin-bottom: 3px; }
+    .product-details p { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+    .product-ncm { display: inline-flex; margin-top: 5px; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.15); border-radius: 5px; padding: 2px 7px; font-size: 10px; color: var(--green); font-family: 'JetBrains Mono', monospace; }
+
+    .price-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+    .price-input-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .price-input-label { display: flex; align-items: center; gap: 12px; }
+    .price-input-icon { font-size: 22px; }
+    .price-input-label strong { font-size: 14px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
+    .price-input-label p { font-size: 11px; color: var(--muted); }
+    .price-input-field-wrap { display: flex; align-items: center; gap: 10px; background: rgba(0,229,160,0.05); border: 1.5px solid rgba(0,229,160,0.25); border-radius: 14px; padding: 14px 18px; transition: border-color 0.2s; }
+    .price-input-field-wrap:focus-within { border-color: var(--green); background: rgba(0,229,160,0.08); }
+    .price-currency { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green); flex-shrink: 0; }
+    .price-field { flex: 1; background: none; border: none; outline: none; font-family: 'DM Serif Display', serif; font-size: 32px; color: #fff; width: 100%; }
+    .price-field::placeholder { color: rgba(255,255,255,0.15); }
+    .price-field::-webkit-inner-spin-button, .price-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .price-results { animation: fadeUp 0.3s ease; }
+    .price-row { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .price-row:last-child { border-bottom: none; }
+    .price-row-label { display: flex; flex-direction: column; gap: 3px; }
+    .price-row-label strong { font-size: 13px; font-weight: 500; }
+    .price-row-label span { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+    .price-value { font-family: 'DM Serif Display', serif; font-size: 20px; flex-shrink: 0; }
+    .price-value.base  { color: #fff; }
+    .price-value.tax   { color: var(--red); }
+    .price-value.total { color: var(--green); }
+    .tax-badge { display: inline-flex; background: rgba(255,83,112,0.1); border: 1px solid rgba(255,83,112,0.2); border-radius: 5px; padding: 1px 6px; font-size: 10px; color: var(--red); font-family: 'JetBrains Mono', monospace; margin: 1px 1px 0 0; }
+
+
+    .tax-bar-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+    .section-title { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 14px; }
+    .bar-track { height: 9px; border-radius: 99px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 12px; }
+    .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--green), var(--cyan)); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+    .bar-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+    .bar-labels strong { color: var(--text); }
+
+    .destination-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+    .dest-list { display: flex; flex-direction: column; gap: 10px; }
+    .dest-item { display: flex; align-items: center; gap: 10px; }
+    .dest-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .dest-info { flex: 1; min-width: 0; }
+    .dest-name { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+    .dest-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .dest-bar-track { flex: 1; height: 4px; border-radius: 99px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    .dest-bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+    .dest-pct { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); width: 28px; text-align: right; }
+
+    .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 30px; color: var(--muted); border: 1px dashed rgba(0,229,160,0.1); border-radius: var(--radius); background: rgba(0,229,160,0.02); }
+    .empty-state .icon { font-size: 36px; margin-bottom: 14px; }
+    .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 18px; color: rgba(255,255,255,0.25); margin-bottom: 8px; }
+    .empty-state p { font-size: 12px; line-height: 1.7; max-width: 260px; }
+
+    .footer-note { text-align: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); padding: 16px; border-top: 1px solid var(--border); letter-spacing: 0.05em; }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--green); border-radius: 10px; padding: 11px 20px; font-size: 12px; color: var(--green); font-family: 'JetBrains Mono', monospace; transition: transform 0.3s ease; z-index: 200; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.error { border-color: var(--red); color: var(--red); }
+
+    #html5-qrcode-button-camera-permission, #html5-qrcode-button-camera-start, #html5-qrcode-button-camera-stop { background: linear-gradient(135deg, var(--green), var(--cyan)) !important; color: #070C18 !important; border: none !important; border-radius: 8px !important; padding: 7px 14px !important; font-family: 'Outfit', sans-serif !important; font-weight: 600 !important; cursor: pointer !important; margin: 6px !important; }
+    #html5-qrcode-select-camera { background: var(--card) !important; color: var(--text) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 5px 9px !important; font-family: 'Outfit', sans-serif !important; margin: 4px !important; }
+
+    @media (min-width: 768px) { .mobile-layout { display: none; } .desktop-layout { display: flex; } }
+    @media (max-width: 767px) { .desktop-layout { display: none; } .mobile-layout { display: flex; } header { padding: 0 16px; } .header-badge span { display: none; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo-slot">
+    <img src="SUA_LOGO_AQUI.png" alt="Logo"/>
+  </div>
+  <div class="header-brand">
+    <div class="app-title">tribu<span>tify</span></div>
+    <div class="app-sub">Transparência Fiscal</div>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="header-badge">
+    <div class="badge-dot"></div>
+    <span>Cosmos API</span>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="desktop-layout">
+    <div class="col-left">
+      <div class="scan-card">
+        <div class="scan-card-header">
+          <span class="scan-label">📷 Leitor QR Code</span>
+          <div class="status-dot" id="statusDotD"></div>
+        </div>
+        <div class="qr-wrap">
+          <div class="qr-reader-el" id="qr-d"></div>
+          <div class="scan-overlay" id="overlayD">
+            <div class="scan-frame"><span></span><div class="scan-line"></div></div>
+          </div>
+        </div>
+        <div class="scan-card-footer">
+          <button class="btn btn-primary" id="btnD" onclick="toggleScan('d')">Iniciar Scanner</button>
+          <button class="btn btn-secondary" onclick="loadDemo()">Demo</button>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <div class="search-row">
+          <input class="search-input" id="inputD" type="text" placeholder="Buscar produto ou código EAN..." autocomplete="off" oninput="onSearch(this,'sugD')" onkeydown="onKey(event,'sugD','d')"/>
+          <button class="btn-search" onclick="searchManual('d')">→</button>
+        </div>
+        <div class="loading-bar" id="loadBarD"></div>
+        <div class="suggestions" id="sugD"></div>
+      </div>
+      <div class="destination-card" id="destD" style="display:none;"></div>
+    </div>
+    <div class="col-right">
+      <div class="results" id="resultsD">
+        <div class="product-info" id="prodD"></div>
+        <div class="price-card"   id="priceD"></div>
+        <div class="tax-bar-card" id="barD"></div>
+      </div>
+      <div class="empty-state" id="emptyD">
+        <div class="icon">🔍</div>
+        <h3>Nenhum produto</h3>
+        <p>Busque por nome, escaneie um QR Code ou clique em Demo para testar.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="mobile-layout">
+    <div class="scan-card">
+      <div class="scan-card-header">
+        <span class="scan-label">📷 Leitor QR Code</span>
+        <div class="status-dot" id="statusDotM"></div>
+      </div>
+      <div class="qr-wrap">
+        <div class="qr-reader-el" id="qr-m"></div>
+        <div class="scan-overlay" id="overlayM">
+          <div class="scan-frame"><span></span><div class="scan-line"></div></div>
+        </div>
+      </div>
+      <div class="scan-card-footer">
+        <button class="btn btn-primary" id="btnM" onclick="toggleScan('m')">Iniciar Scanner</button>
+        <button class="btn btn-secondary" onclick="loadDemo()">Demo</button>
+      </div>
+    </div>
+    <div class="search-wrap">
+      <div class="search-row">
+        <input class="search-input" id="inputM" type="text" placeholder="Buscar produto ou código EAN..." autocomplete="off" oninput="onSearch(this,'sugM')" onkeydown="onKey(event,'sugM','m')"/>
+        <button class="btn-search" onclick="searchManual('m')">→</button>
+      </div>
+      <div class="loading-bar" id="loadBarM"></div>
+      <div class="suggestions" id="sugM"></div>
+    </div>
+    <div class="results" id="resultsM">
+      <div class="product-info" id="prodM"></div>
+      <div class="price-card"   id="priceM"></div>
+      <div class="tax-bar-card" id="barM"></div>
+      <div class="destination-card" id="destM"></div>
+    </div>
+    <div class="empty-state" id="emptyM">
+      <div class="icon">🔍</div>
+      <h3>Nenhum produto</h3>
+      <p>Busque por nome, escaneie um QR Code ou insira o código manualmente.</p>
+    </div>
+  </div>
+
+  <div class="footer-note">tributify · powered by cosmos api · © 2025</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COSMOS_TOKEN = "I9Y5s0Ottjw3s_AR6gacUQ";
+const PROXY = "https://corsproxy.io/?url=";
+
+const DESTS = [
+  { name:"Saúde (SUS)",        pct:30, color:"#00E5A0", icon:"🏥", bg:"rgba(0,229,160,0.12)"   },
+  { name:"Educação",           pct:25, color:"#00C4E8", icon:"📚", bg:"rgba(0,196,232,0.12)"   },
+  { name:"Infraestrutura",     pct:20, color:"#FFD166", icon:"🛣️", bg:"rgba(255,209,102,0.12)" },
+  { name:"Assistência Social", pct:15, color:"#FF9F43", icon:"🤝", bg:"rgba(255,159,67,0.12)"  },
+  { name:"Segurança Pública",  pct:10, color:"#FF5370", icon:"🛡️", bg:"rgba(255,83,112,0.12)"  },
+];
+
+const DEMO_DATA = {
+  description: "AÇÚCAR REFINADO UNIÃO 1KG",
+  brand: { name: "UNIÃO" },
+  ncm: { code: "17019900", description: "Açúcares e produtos de confeitaria" },
+  thumbnail: null,
+  taxes: [{ state:"SP", icms_tax:12, pis_tax:0.65, cofins_tax:3, ipi_tax:0 }]
+};
+
+const sc = {d:null, m:null}, running = {d:false, m:false};
+let searchTimer = null;
+
+function toggleScan(k) { running[k] ? stopScan(k) : startScan(k); }
+
+function startScan(k) {
+  sc[k] = new Html5Qrcode("qr-"+k);
+  sc[k].start({facingMode:"environment"},{fps:10,qrbox:{width:170,height:170}},
+    code => { stopScan(k); fetchByCode(code); }, ()=>{})
+  .then(() => {
+    running[k] = true;
+    document.getElementById("btn"+k.toUpperCase()).textContent = "Parar Scanner";
+    document.getElementById("statusDot"+k.toUpperCase()).classList.add("active");
+    document.getElementById("overlay"+k.toUpperCase()).style.display = "none";
+  }).catch(() => showToast("Câmera não disponível", true));
+}
+
+function stopScan(k) {
+  sc[k]?.stop().catch(()=>{});
+  sc[k] = null; running[k] = false;
+  document.getElementById("btn"+k.toUpperCase()).textContent = "Iniciar Scanner";
+  document.getElementById("statusDot"+k.toUpperCase()).classList.remove("active");
+  document.getElementById("overlay"+k.toUpperCase()).style.display = "flex";
+}
+
+async function fetchByCode(code) {
+  setLoading(true);
+  try {
+    const res = await fetch(`${PROXY}https://api.cosmos.bluesoft.com.br/gtins/${code}`, {
+      headers: { "X-Cosmos-Token": COSMOS_TOKEN, "Content-Type": "application/json" }
+    });
+    if (!res.ok) throw new Error("not found");
+    const data = await res.json();
+    setLoading(false);
+    showToast("✓ Produto encontrado");
+    renderResults(data);
+  } catch {
+    setLoading(false);
+    showToast("Produto não encontrado", true);
+  }
+}
+
+async function fetchByName(q) {
+  try {
+    const res = await fetch(`${PROXY}https://api.cosmos.bluesoft.com.br/products?query=${encodeURIComponent(q)}`, {
+      headers: { "X-Cosmos-Token": COSMOS_TOKEN, "Content-Type": "application/json" }
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.products || data || [];
+  } catch { return []; }
+}
+
+function onSearch(input, sugId) {
+  const q = input.value.trim();
+  const box = document.getElementById(sugId);
+  clearTimeout(searchTimer);
+  if (!q || /^\d{6,}$/.test(q)) { box.classList.remove("open"); return; }
+
+  searchTimer = setTimeout(async () => {
+    setLoading(true);
+    const results = await fetchByName(q);
+    setLoading(false);
+    if (!results.length) {
+      box.innerHTML = `<div class="no-results">Nenhum produto encontrado</div>`;
+      box.classList.add("open");
+      return;
+    }
+    box.innerHTML = results.slice(0,6).map(p => `
+      <div class="suggestion-item" onclick="selectFromSuggestion('${p.gtin || p.code}','${sugId}')">
+        <span class="sug-icon">${p.thumbnail ? `<img src="${p.thumbnail}" style="width:28px;height:28px;object-fit:contain;border-radius:6px;">` : "📦"}</span>
+        <div class="sug-info">
+          <span class="sug-name">${p.description || p.name || "Produto"}</span>
+          <span class="sug-brand">${p.brand?.name || ""}</span>
+        </div>
+        ${p.avg_price ? `<span class="sug-price">${fmt(p.avg_price)}</span>` : ""}
+      </div>`).join("");
+    box.classList.add("open");
+  }, 1000);
+}
+
+async function selectFromSuggestion(code, sugId) {
+  document.getElementById(sugId).classList.remove("open");
+  await fetchByCode(code);
+}
+
+function onKey(e, sugId, k) {
+  if (e.key === "Enter") { document.getElementById(sugId).classList.remove("open"); searchManual(k); }
+  if (e.key === "Escape") document.getElementById(sugId).classList.remove("open");
+}
+
+async function searchManual(k) {
+  const v = document.getElementById("input"+k.toUpperCase()).value.trim();
+  if (!v) return showToast("Digite um produto ou código", true);
+  document.getElementById("sug"+k.toUpperCase()).classList.remove("open");
+  await fetchByCode(v);
+}
+
+function loadDemo() { renderResults(DEMO_DATA); showToast("✓ Modo demo ativado"); }
+
+document.addEventListener("click", e => {
+  if (!e.target.closest(".search-wrap"))
+    document.querySelectorAll(".suggestions").forEach(s => s.classList.remove("open"));
+});
+
+function setLoading(on) {
+  document.querySelectorAll(".loading-bar").forEach(b => b.classList.toggle("active", on));
+}
+
+function getTaxes(data) {
+  const t = (data.taxes && data.taxes[0]) || {};
+  return {
+    icms:   parseFloat(t.icms_tax   || t.icms   || 18),
+    pis:    parseFloat(t.pis_tax    || t.pis    || 1.65),
+    cofins: parseFloat(t.cofins_tax || t.cofins || 7.6),
+    ipi:    parseFloat(t.ipi_tax    || t.ipi    || 0),
+  };
+}
+
+function renderResults(data) {
+  const name     = data.description || data.name || "Produto";
+  const brand    = data.brand?.name || "";
+  const ncmCode  = data.ncm?.code || "";
+  const ncmDesc  = data.ncm?.description || "";
+  const thumb    = data.thumbnail || null;
+  const taxes    = getTaxes(data);
+  const taxRate  = Object.values(taxes).reduce((a,b)=>a+b,0);
+  const iconHTML = thumb
+    ? `<img class="product-thumb" src="${thumb}" alt="${name}" onerror="this.outerHTML='<div class=\\'product-icon\\'>📦</div>'">`
+    : `<div class="product-icon">📦</div>`;
+
+  const prodHTML = `
+    ${iconHTML}
+    <div class="product-details">
+      <h2>${name}</h2>
+      <p>${brand}${brand && ncmDesc ? " · " : ""}${ncmDesc}</p>
+      ${ncmCode ? `<span class="product-ncm">NCM ${ncmCode}</span>` : ""}
+    </div>`;
+
+  const taxBadges = Object.entries(taxes).filter(([,v])=>v>0)
+    .map(([k,v])=>`<span class="tax-badge">${k.toUpperCase()} ${v}%</span>`).join(" ");
+
+  const priceHTML = `
+    <div class="price-input-card">
+      <div class="price-input-label">
+        <span class="price-input-icon">🏷️</span>
+        <div>
+          <strong>Qual o preço na etiqueta?</strong>
+          <p>Digite o valor que aparece no produto</p>
+        </div>
+      </div>
+      <div class="price-input-field-wrap">
+        <span class="price-currency">R$</span>
+        <input
+          class="price-field"
+          id="priceField"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="0,00"
+          oninput="recalc(${taxRate})" onchange="recalc(${taxRate})" onkeyup="recalc(${taxRate})"
+          autofocus
+        />
+      </div>
+    </div>
+    <div class="price-results" id="priceResults" style="display:none;">
+      <div class="price-row">
+        <div class="price-row-label"><strong>Preço pago (etiqueta)</strong><span>${taxBadges}</span></div>
+        <span class="price-value total" id="rTotal">—</span>
+      </div>
+      <div class="price-row">
+        <div class="price-row-label"><strong>Impostos embutidos</strong><span>valor que vai ao governo</span></div>
+        <span class="price-value tax" id="rTax">—</span>
+      </div>
+      <div class="price-row" style="background:rgba(0,229,160,0.04)">
+        <div class="price-row-label"><strong>Preço sem impostos</strong><span>custo real do produto</span></div>
+        <span class="price-value base" id="rBase">—</span>
+      </div>
+    </div>`;
+
+  const barHTML = `
+    <div class="section-title">Composição do preço</div>
+    <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    <div class="bar-labels">
+      <span>Produto <strong id="barProd">—</strong></span>
+      <span>Impostos <strong id="barTax" style="color:var(--red)">—</strong></span>
+    </div>`;
+
+  const destHTML = `
+    <div class="section-title">Para onde vai seu imposto</div>
+    <div class="dest-list">
+      ${DESTS.map(d => `
+        <div class="dest-item">
+          <div class="dest-icon" style="background:${d.bg}">${d.icon}</div>
+          <div class="dest-info">
+            <div class="dest-name" style="color:${d.color}">${d.name}
+              <span class="dest-val-${d.pct}" style="color:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace"></span>
+            </div>
+            <div class="dest-bar-wrap">
+              <div class="dest-bar-track"><div class="dest-bar-fill" data-pct="${d.pct}" style="background:${d.color};width:0%"></div></div>
+              <span class="dest-pct">${d.pct}%</span>
+            </div>
+          </div>
+        </div>`).join("")}
+    </div>`;
+  
+
+  ["D","M"].forEach(k => {
+    document.getElementById("prod"+k).innerHTML  = prodHTML;
+    document.getElementById("price"+k).innerHTML = priceHTML;
+    document.getElementById("bar"+k).innerHTML   = barHTML;
+    document.getElementById("dest"+k).innerHTML  = destHTML;
+    document.getElementById("dest"+k).style.display = "block";
+    document.getElementById("empty"+k).style.display = "none";
+    document.getElementById("results"+k).classList.add("visible");
+  });
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll(".dest-bar-fill").forEach(el => el.style.width = el.dataset.pct+"%");
+    document.getElementById("priceField")?.focus();
+  }));
+}
+
+function recalc(taxRate) {
+  const input = document.getElementById("priceField");
+  if (!input) return;
+  const total = parseFloat(input.value) || 0;
+  const resultsEl = document.getElementById("priceResults");
+  if (!total) {
+    if (resultsEl) resultsEl.style.display = "none";
+    document.getElementById("barFill") && (document.getElementById("barFill").style.width = "0%");
+    document.getElementById("barProd") && (document.getElementById("barProd").textContent = "—");
+    document.getElementById("barTax")  && (document.getElementById("barTax").textContent  = "—");
+    DESTS.forEach(d => document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = ""));
+    return;
+  }
+  const multiplier = 1 + (taxRate / 100);
+  const base   = total / multiplier;
+  const taxAmt = total - base;
+  const taxPct = ((taxAmt / total) * 100).toFixed(1);
+
+  if (resultsEl) resultsEl.style.display = "block";
+  document.getElementById("rTotal") && (document.getElementById("rTotal").textContent = fmt(total));
+  document.getElementById("rTax")   && (document.getElementById("rTax").textContent   = "-"+fmt(taxAmt));
+  document.getElementById("rBase")  && (document.getElementById("rBase").textContent  = fmt(base));
+  document.getElementById("barFill") && (document.getElementById("barFill").style.width = taxPct+"%");
+  document.getElementById("barProd") && (document.getElementById("barProd").textContent = (100-taxPct).toFixed(1)+"%");
+  document.getElementById("barTax")  && (document.getElementById("barTax").textContent  = taxPct+"%");
+  DESTS.forEach(d => {
+    const val = taxAmt * d.pct / 100;
+    document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = " · "+fmt(val));
+    document.querySelectorAll(".dest-bar-fill[data-pct='"+d.pct+"']").forEach(el => el.style.width = d.pct+"%");
+  });
+}
+
+function fmt(v) { return "R$ "+Number(v).toFixed(2).replace(".",","); }
+
+function showToast(msg, error=false) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.toggle("error", error);
+  t.classList.add("show");
+  setTimeout(() => { t.classList.remove("show"); t.classList.remove("error"); }, 2500);
+}
+</script>
+</body>
+</html>
