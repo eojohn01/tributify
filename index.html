@@ -509,7 +509,7 @@ function renderResults(data) {
       .replace(/id="rTotal"/g, `id="rTotal-${suffix}"`)
       .replace(/id="rTax"/g, `id="rTax-${suffix}"`)
       .replace(/id="rBase"/g, `id="rBase-${suffix}"`)
-      .replace(/recalc\(\$\{taxRate\}\)/g, `recalc(${taxRate},'${suffix}')`);
+      .replace(/recalc\([\d.]+\)/g, `recalc(${taxRate},'${suffix}')`);
     const bHTML = barHTML
       .replace(/id="barFill"/g, `id="barFill-${suffix}"`)
       .replace(/id="barProd"/g, `id="barProd-${suffix}"`)
