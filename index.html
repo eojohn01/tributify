@@ -269,7 +269,7 @@
     </div>
   </div>
 
-  <div class="footer-note">tributify · powered by cosmos api · © 2025</div>
+  <div class="footer-note">tributify · powered by cosmos api · © 2026</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -502,9 +502,22 @@ function renderResults(data) {
   
 
   ["D","M"].forEach(k => {
+    const suffix = k.toLowerCase();
+    const pHTML = priceHTML
+      .replace(/id="priceField"/g, `id="priceField-${suffix}"`)
+      .replace(/id="priceResults"/g, `id="priceResults-${suffix}"`)
+      .replace(/id="rTotal"/g, `id="rTotal-${suffix}"`)
+      .replace(/id="rTax"/g, `id="rTax-${suffix}"`)
+      .replace(/id="rBase"/g, `id="rBase-${suffix}"`)
+      .replace(/recalc\(\$\{taxRate\}\)/g, `recalc(${taxRate},'${suffix}')`);
+    const bHTML = barHTML
+      .replace(/id="barFill"/g, `id="barFill-${suffix}"`)
+      .replace(/id="barProd"/g, `id="barProd-${suffix}"`)
+      .replace(/id="barTax"/g, `id="barTax-${suffix}"`);
+
     document.getElementById("prod"+k).innerHTML  = prodHTML;
-    document.getElementById("price"+k).innerHTML = priceHTML;
-    document.getElementById("bar"+k).innerHTML   = barHTML;
+    document.getElementById("price"+k).innerHTML = pHTML;
+    document.getElementById("bar"+k).innerHTML   = bHTML;
     document.getElementById("dest"+k).innerHTML  = destHTML;
     document.getElementById("dest"+k).style.display = "block";
     document.getElementById("empty"+k).style.display = "none";
@@ -513,20 +526,20 @@ function renderResults(data) {
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll(".dest-bar-fill").forEach(el => el.style.width = el.dataset.pct+"%");
-    document.getElementById("priceField")?.focus();
   }));
 }
 
-function recalc(taxRate) {
-  const input = document.getElementById("priceField");
+function recalc(taxRate, suffix) {
+  const input = document.getElementById("priceField-"+suffix);
   if (!input) return;
   const total = parseFloat(input.value) || 0;
-  const resultsEl = document.getElementById("priceResults");
+  const resultsEl = document.getElementById("priceResults-"+suffix);
+  const g = id => document.getElementById(id+"-"+suffix);
   if (!total) {
     if (resultsEl) resultsEl.style.display = "none";
-    document.getElementById("barFill") && (document.getElementById("barFill").style.width = "0%");
-    document.getElementById("barProd") && (document.getElementById("barProd").textContent = "—");
-    document.getElementById("barTax")  && (document.getElementById("barTax").textContent  = "—");
+    g("barFill") && (g("barFill").style.width = "0%");
+    g("barProd") && (g("barProd").textContent = "—");
+    g("barTax")  && (g("barTax").textContent  = "—");
     DESTS.forEach(d => document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = ""));
     return;
   }
@@ -536,12 +549,12 @@ function recalc(taxRate) {
   const taxPct = ((taxAmt / total) * 100).toFixed(1);
 
   if (resultsEl) resultsEl.style.display = "block";
-  document.getElementById("rTotal") && (document.getElementById("rTotal").textContent = fmt(total));
-  document.getElementById("rTax")   && (document.getElementById("rTax").textContent   = "-"+fmt(taxAmt));
-  document.getElementById("rBase")  && (document.getElementById("rBase").textContent  = fmt(base));
-  document.getElementById("barFill") && (document.getElementById("barFill").style.width = taxPct+"%");
-  document.getElementById("barProd") && (document.getElementById("barProd").textContent = (100-taxPct).toFixed(1)+"%");
-  document.getElementById("barTax")  && (document.getElementById("barTax").textContent  = taxPct+"%");
+  g("rTotal") && (g("rTotal").textContent = fmt(total));
+  g("rTax")   && (g("rTax").textContent   = "-"+fmt(taxAmt));
+  g("rBase")  && (g("rBase").textContent  = fmt(base));
+  g("barFill") && (g("barFill").style.width = taxPct+"%");
+  g("barProd") && (g("barProd").textContent = (100-taxPct).toFixed(1)+"%");
+  g("barTax")  && (g("barTax").textContent  = taxPct+"%");
   DESTS.forEach(d => {
     const val = taxAmt * d.pct / 100;
     document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = " · "+fmt(val));
