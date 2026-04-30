@@ -4,59 +4,86 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tributify</title>
+
+  <!-- Biblioteca para leitura de QR Code via câmera -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+
+  <!-- Fontes utilizadas no app -->
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
   <style>
+    
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    
     :root {
-      --bg:      #070C18;
-      --surface: #0E1628;
-      --card:    #131D33;
-      --border:  rgba(0,229,160,0.12);
-      --green:   #00E5A0;
-      --cyan:    #00C4E8;
-      --red:     #FF5370;
-      --text:    #E8F0FE;
-      --muted:   #5A6A8A;
-      --radius:  18px;
-      --header-h: 68px;
+      --bg:      #070C18; 
+      --surface: #0E1628; 
+      --card:    #131D33; 
+      --border:  rgba(0,229,160,0.12); 
+      --green:   #00E5A0; 
+      --cyan:    #00C4E8; 
+      --red:     #FF5370; 
+      --text:    #E8F0FE; 
+      --muted:   #5A6A8A; 
+      --radius:  18px;    
+      --header-h: 68px;   
     }
 
+    
     html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Outfit', sans-serif; }
 
+    
     header { position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); background: rgba(7,12,24,0.88); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 28px; gap: 16px; z-index: 100; }
 
+    
     .logo-slot { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
     .logo-slot img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
 
+    
     .header-brand { display: flex; flex-direction: column; gap: 1px; }
     .app-title { font-family: 'DM Serif Display', serif; font-size: 22px; letter-spacing: -0.3px; color: #fff; line-height: 1; }
     .app-title span { color: var(--green); }
     .app-sub { font-size: 9px; letter-spacing: 2.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+
+    
     .header-spacer { flex: 1; }
+
+    
     .header-badge { display: flex; align-items: center; gap: 6px; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2); border-radius: 8px; padding: 6px 12px; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--green); letter-spacing: 0.05em; }
     .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
 
+    
     .page { padding-top: var(--header-h); min-height: 100vh; display: flex; flex-direction: column; }
 
+    
     .desktop-layout { display: none; flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; padding: 32px 32px 60px; gap: 28px; align-items: flex-start; }
+    
     .col-left  { width: 370px; flex-shrink: 0; display: flex; flex-direction: column; gap: 18px; position: sticky; top: calc(var(--header-h) + 20px); }
+    
     .col-right { flex: 1; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+    
     .mobile-layout { display: flex; flex-direction: column; padding: 20px 16px 60px; gap: 16px; max-width: 480px; margin: 0 auto; width: 100%; }
 
+    
     .scan-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .scan-card-header { padding: 14px 20px 12px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
     .scan-label { font-size: 11px; letter-spacing: 2px; color: var(--green); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+
+    
     .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); transition: background 0.3s; }
     .status-dot.active { background: var(--green); animation: pulse 1.5s infinite; }
     @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.4); } 50% { box-shadow: 0 0 0 6px rgba(0,229,160,0); } }
 
+    
     .qr-wrap { position: relative; }
     .qr-reader-el { width: 100%; min-height: 210px; background: #050911; }
     .qr-reader-el video { width: 100% !important; border-radius: 0 !important; }
     .qr-reader-el img { display: none !important; }
     .qr-reader-el > div:last-child { display: none !important; }
+
+    
     .scan-overlay { position: absolute; inset: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; }
     .scan-frame { width: 140px; height: 140px; position: relative; }
     .scan-frame::before, .scan-frame::after, .scan-frame span::before, .scan-frame span::after { content: ''; position: absolute; width: 20px; height: 20px; border-color: var(--green); border-style: solid; }
@@ -64,16 +91,22 @@
     .scan-frame::after       { top:0;right:0;    border-width: 2px 2px 0 0; }
     .scan-frame span::before { bottom:0;left:0;  border-width: 0 0 2px 2px; }
     .scan-frame span::after  { bottom:0;right:0; border-width: 0 2px 2px 0; }
+
+    
     .scan-line { position: absolute; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--green), transparent); animation: scanline 2s ease-in-out infinite; top: 10%; }
     @keyframes scanline { 0% { top:10%; opacity:0; } 10% { opacity:1; } 90% { opacity:1; } 100% { top:90%; opacity:0; } }
+
+    
     .scan-card-footer { padding: 12px 18px; display: flex; gap: 10px; }
 
+    
     .btn { flex: 1; padding: 11px; border: none; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-primary { background: linear-gradient(135deg, var(--green), var(--cyan)); color: #070C18; }
     .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
     .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: rgba(255,255,255,0.09); }
 
+    
     .search-wrap { position: relative; }
     .search-row { display: flex; gap: 10px; }
     .search-input { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%; }
@@ -82,6 +115,7 @@
     .btn-search { background: linear-gradient(135deg, var(--green), var(--cyan)); border: none; border-radius: 12px; padding: 0 18px; cursor: pointer; color: #070C18; font-size: 17px; transition: opacity 0.2s, transform 0.2s; }
     .btn-search:hover { opacity: 0.85; transform: translateY(-1px); }
 
+    
     .suggestions { position: absolute; top: calc(100% + 6px); left: 0; right: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; z-index: 50; box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: none; }
     .suggestions.open { display: block; }
     .suggestion-item { display: flex; align-items: center; gap: 12px; padding: 11px 16px; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid rgba(255,255,255,0.04); }
@@ -93,54 +127,73 @@
     .sug-brand { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
     .no-results { padding: 14px 16px; font-size: 12px; color: var(--muted); text-align: center; }
 
+    
     .loading-bar { display: none; height: 2px; background: linear-gradient(90deg, var(--green), var(--cyan), var(--green)); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; border-radius: 99px; margin-top: 6px; }
     .loading-bar.active { display: block; }
     @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+    
     .results { display: none; flex-direction: column; gap: 16px; animation: fadeUp 0.4s ease; }
     .results.visible { display: flex; }
     @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
 
+    
     .product-info { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; display: flex; gap: 14px; align-items: center; }
+    
     .product-thumb { width: 56px; height: 56px; border-radius: 12px; object-fit: contain; background: rgba(255,255,255,0.04); flex-shrink: 0; }
+    
     .product-icon { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, rgba(0,229,160,0.12), rgba(0,196,232,0.12)); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
     .product-details h2 { font-family: 'DM Serif Display', serif; font-size: 17px; color: #fff; margin-bottom: 3px; }
     .product-details p { font-size: 11px; color: var(--muted); font-family: 'JetBrains Mono', monospace; line-height: 1.5; }
+    
     .product-ncm { display: inline-flex; margin-top: 5px; background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.15); border-radius: 5px; padding: 2px 7px; font-size: 10px; color: var(--green); font-family: 'JetBrains Mono', monospace; }
 
+    
     .price-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 
+    
     .price-input-card { padding: 20px; display: flex; flex-direction: column; gap: 16px; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .price-input-label { display: flex; align-items: center; gap: 12px; }
     .price-input-icon { font-size: 22px; }
     .price-input-label strong { font-size: 14px; font-weight: 600; color: var(--text); display: block; margin-bottom: 2px; }
     .price-input-label p { font-size: 11px; color: var(--muted); }
+
+    
     .price-input-field-wrap { display: flex; align-items: center; gap: 10px; background: rgba(0,229,160,0.05); border: 1.5px solid rgba(0,229,160,0.25); border-radius: 14px; padding: 14px 18px; transition: border-color 0.2s; }
     .price-input-field-wrap:focus-within { border-color: var(--green); background: rgba(0,229,160,0.08); }
     .price-currency { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green); flex-shrink: 0; }
     .price-field { flex: 1; background: none; border: none; outline: none; font-family: 'DM Serif Display', serif; font-size: 32px; color: #fff; width: 100%; }
     .price-field::placeholder { color: rgba(255,255,255,0.15); }
+    
     .price-field::-webkit-inner-spin-button, .price-field::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    
     .price-results { animation: fadeUp 0.3s ease; }
     .price-row { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .price-row:last-child { border-bottom: none; }
     .price-row-label { display: flex; flex-direction: column; gap: 3px; }
     .price-row-label strong { font-size: 13px; font-weight: 500; }
     .price-row-label span { font-size: 10px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+    
     .price-value { font-family: 'DM Serif Display', serif; font-size: 20px; flex-shrink: 0; }
     .price-value.base  { color: #fff; }
     .price-value.tax   { color: var(--red); }
     .price-value.total { color: var(--green); }
+
+    
     .tax-badge { display: inline-flex; background: rgba(255,83,112,0.1); border: 1px solid rgba(255,83,112,0.2); border-radius: 5px; padding: 1px 6px; font-size: 10px; color: var(--red); font-family: 'JetBrains Mono', monospace; margin: 1px 1px 0 0; }
 
-
+    
     .tax-bar-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
     .section-title { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 14px; }
     .bar-track { height: 9px; border-radius: 99px; background: rgba(255,255,255,0.06); overflow: hidden; margin-bottom: 12px; }
+    
     .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--green), var(--cyan)); transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
     .bar-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
     .bar-labels strong { color: var(--text); }
 
+    
     .destination-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
     .dest-list { display: flex; flex-direction: column; gap: 10px; }
     .dest-item { display: flex; align-items: center; gap: 10px; }
@@ -149,29 +202,171 @@
     .dest-name { font-size: 12px; font-weight: 500; margin-bottom: 4px; }
     .dest-bar-wrap { display: flex; align-items: center; gap: 8px; }
     .dest-bar-track { flex: 1; height: 4px; border-radius: 99px; background: rgba(255,255,255,0.06); overflow: hidden; }
+    
     .dest-bar-fill { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
     .dest-pct { font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); width: 28px; text-align: right; }
 
+    
     .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 30px; color: var(--muted); border: 1px dashed rgba(0,229,160,0.1); border-radius: var(--radius); background: rgba(0,229,160,0.02); }
     .empty-state .icon { font-size: 36px; margin-bottom: 14px; }
     .empty-state h3 { font-family: 'DM Serif Display', serif; font-size: 18px; color: rgba(255,255,255,0.25); margin-bottom: 8px; }
     .empty-state p { font-size: 12px; line-height: 1.7; max-width: 260px; }
 
+    
     .footer-note { text-align: center; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--muted); padding: 16px; border-top: 1px solid var(--border); letter-spacing: 0.05em; }
 
+    
     .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--surface); border: 1px solid var(--green); border-radius: 10px; padding: 11px 20px; font-size: 12px; color: var(--green); font-family: 'JetBrains Mono', monospace; transition: transform 0.3s ease; z-index: 200; white-space: nowrap; }
     .toast.show { transform: translateX(-50%) translateY(0); }
     .toast.error { border-color: var(--red); color: var(--red); }
 
+    
+    .btn-denuncia-header { display: flex; align-items: center; gap: 6px; background: rgba(255,83,112,0.12); border: 1px solid rgba(255,83,112,0.35); border-radius: 9px; padding: 7px 14px; color: var(--red); font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; margin-right: 10px; }
+    .btn-denuncia-header:hover { background: rgba(255,83,112,0.22); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,83,112,0.2); }
+    .denuncia-icon { font-size: 14px; }
+
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box { background: var(--card); border: 1px solid rgba(255,83,112,0.3); border-radius: 24px; padding: 36px 32px 28px; max-width: 520px; width: 100%; box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,83,112,0.1); transform: translateY(20px) scale(0.97); transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+    .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+    .modal-icon-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+    .modal-icon { font-size: 44px; line-height: 1; filter: drop-shadow(0 0 18px rgba(255,83,112,0.4)); }
+    .modal-title { font-family: 'DM Serif Display', serif; font-size: 26px; color: #fff; text-align: center; margin-bottom: 4px; }
+    .modal-subtitle { font-size: 10px; letter-spacing: 2.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; text-align: center; margin-bottom: 24px; }
+    .modal-body { font-size: 13px; color: rgba(232,240,254,0.8); line-height: 1.65; }
+    .modal-body strong { color: var(--text); }
+    .modal-body > p { margin-bottom: 20px; }
+    .modal-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+    .modal-step { display: flex; align-items: flex-start; gap: 12px; }
+    .step-num { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,83,112,0.15); border: 1px solid rgba(255,83,112,0.3); color: var(--red); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: 'JetBrains Mono', monospace; margin-top: 1px; }
+    .step-text { font-size: 12.5px; color: rgba(232,240,254,0.75); }
+    .modal-disclaimer { background: rgba(0,229,160,0.05); border: 1px solid rgba(0,229,160,0.12); border-radius: 10px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 11px; color: var(--muted); line-height: 1.6; }
+    .disclaimer-icon { font-size: 14px; flex-shrink: 0; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
+    .modal-btn-cancel { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .modal-btn-cancel:hover { background: rgba(255,255,255,0.09); color: var(--text); }
+    .modal-btn-agree { flex: 2; padding: 12px; background: linear-gradient(135deg, #FF5370, #FF8C42); border: none; border-radius: 10px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; }
+    .modal-btn-agree:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(255,83,112,0.35); }
+
+    
+    .denuncia-page { position: fixed; inset: 0; background: var(--bg); z-index: 400; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.4,0,0.2,1); overflow: hidden; }
+    .denuncia-page.open { transform: translateX(0); }
+    .denuncia-header { display: flex; align-items: center; gap: 16px; padding: 0 24px; height: var(--header-h); background: rgba(7,12,24,0.95); backdrop-filter: blur(18px); border-bottom: 1px solid rgba(255,83,112,0.18); flex-shrink: 0; }
+    .denuncia-back { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; padding: 7px 14px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 12px; cursor: pointer; transition: all 0.2s; flex-shrink: 0; }
+    .denuncia-back:hover { color: var(--text); background: rgba(255,255,255,0.09); }
+    .denuncia-header-title { display: flex; align-items: center; gap: 12px; flex: 1; }
+    .denuncia-header-icon { font-size: 22px; }
+    .denuncia-title-main { font-family: 'DM Serif Display', serif; font-size: 18px; color: #fff; line-height: 1; }
+    .denuncia-title-sub { font-size: 9px; letter-spacing: 2px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-top: 2px; }
+    .denuncia-step-badge { background: rgba(255,83,112,0.12); border: 1px solid rgba(255,83,112,0.25); border-radius: 7px; padding: 5px 12px; font-size: 11px; color: var(--red); font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+    .denuncia-content { flex: 1; overflow-y: auto; padding: 32px 24px 60px; max-width: 680px; margin: 0 auto; width: 100%; }
+
+    
+    .step-header { display: flex; align-items: center; gap: 14px; margin-bottom: 28px; }
+    .step-circle { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, rgba(255,83,112,0.2), rgba(255,140,66,0.2)); border: 1.5px solid rgba(255,83,112,0.4); color: var(--red); font-family: 'DM Serif Display', serif; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .step-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: #fff; }
+    .step-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    
+    .form-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-label { font-size: 11px; letter-spacing: 1.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+    .required { color: var(--red); }
+    .form-input, .form-select, .form-textarea { background: var(--card); border: 1px solid var(--border); border-radius: 11px; padding: 12px 14px; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 13px; outline: none; transition: border-color 0.2s, background 0.2s; width: 100%; }
+    .form-input::placeholder, .form-textarea::placeholder { color: var(--muted); }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: rgba(255,83,112,0.5); background: rgba(255,83,112,0.03); }
+    .form-input.field-error, .form-select.field-error { border-color: var(--red) !important; background: rgba(255,83,112,0.06) !important; animation: shake 0.3s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} }
+    .field-error-msg { font-size: 11px; color: var(--red); font-family: 'JetBrains Mono', monospace; display: none; align-items: center; gap: 5px; }
+    .field-error-msg.visible { display: flex; }
+    .form-select { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235A6A8A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    .form-select option { background: var(--surface); color: var(--text); }
+    .form-textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
+    .cep-result { font-size: 11px; color: var(--green); font-family: 'JetBrains Mono', monospace; min-height: 16px; }
+    .char-count { font-size: 10px; color: var(--muted); text-align: right; font-family: 'JetBrains Mono', monospace; }
+
+    
+    .anon-toggle { display: flex; align-items: center; gap: 14px; background: rgba(0,229,160,0.04); border: 1px solid rgba(0,229,160,0.1); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px; cursor: pointer; }
+    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; inset: 0; background: rgba(255,255,255,0.08); border-radius: 99px; border: 1px solid var(--border); transition: background 0.3s; cursor: pointer; }
+    .toggle-switch input:checked + .toggle-track { background: rgba(0,229,160,0.25); border-color: rgba(0,229,160,0.4); }
+    .toggle-thumb { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--muted); transition: transform 0.3s, background 0.3s; }
+    .toggle-switch input:checked + .toggle-track .toggle-thumb { transform: translateX(20px); background: var(--green); }
+    .toggle-label { font-size: 13px; font-weight: 600; color: var(--text); }
+    .toggle-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 4px; }
+    .cat-item { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px 14px; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .cat-item:hover { border-color: rgba(255,83,112,0.3); background: rgba(255,83,112,0.05); }
+    .cat-item.selected { border-color: var(--red); background: rgba(255,83,112,0.1); box-shadow: 0 0 0 3px rgba(255,83,112,0.12); }
+    .cat-icon { font-size: 26px; margin-bottom: 7px; }
+    .cat-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .cat-desc { font-size: 10px; color: var(--muted); line-height: 1.4; }
+
+    
+    .upload-area { border: 2px dashed rgba(255,83,112,0.3); border-radius: 14px; padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: rgba(255,83,112,0.02); position: relative; }
+    .upload-area:hover { border-color: rgba(255,83,112,0.55); background: rgba(255,83,112,0.06); }
+    .upload-area.drag-over { border-color: var(--red); background: rgba(255,83,112,0.09); transform: scale(1.01); }
+    .upload-area.has-image { border-style: solid; border-color: rgba(0,229,160,0.4); background: rgba(0,229,160,0.04); }
+    .upload-icon { font-size: 30px; margin-bottom: 10px; }
+    .upload-text { font-size: 13px; color: var(--text); font-weight: 500; margin-bottom: 4px; }
+    .upload-sub { font-size: 11px; color: var(--muted); }
+    .upload-preview { display: none; max-width: 100%; max-height: 220px; border-radius: 10px; margin-top: 12px; object-fit: contain; }
+    .upload-area.has-image .upload-preview { display: block; }
+    .upload-area.has-image .upload-icon, .upload-area.has-image .upload-text, .upload-area.has-image .upload-sub { display: none; }
+    .btn-remove-img { background: rgba(255,83,112,0.1); border: 1px solid rgba(255,83,112,0.25); border-radius: 7px; padding: 6px 14px; color: var(--red); font-family: 'Outfit', sans-serif; font-size: 11px; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+    .btn-remove-img:hover { background: rgba(255,83,112,0.2); }
+    .label-badge { background: rgba(255,209,102,0.12); border: 1px solid rgba(255,209,102,0.25); border-radius: 5px; padding: 1px 7px; font-size: 9px; color: #FFD166; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px; margin-left: 8px; vertical-align: middle; }
+
+    
+    .step-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .btn-step-next { background: linear-gradient(135deg, var(--red), #FF8C42); border: none; border-radius: 10px; padding: 12px 24px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+    .btn-step-next:hover { opacity: 0.88; transform: translateY(-1px); }
+    .btn-step-back { background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 10px; padding: 12px 20px; color: var(--muted); font-family: 'Outfit', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .btn-step-back:hover { color: var(--text); background: rgba(255,255,255,0.09); }
+    .btn-step-submit { background: linear-gradient(135deg, #00E5A0, #00C4E8); border: none; border-radius: 10px; padding: 12px 28px; color: #070C18; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em; }
+    .btn-step-submit:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,229,160,0.3); }
+
+    
+    .success-card { background: var(--card); border: 1px solid rgba(0,229,160,0.25); border-radius: 20px; padding: 40px 32px; text-align: center; animation: fadeUp 0.5s ease; }
+    .success-anim { font-size: 54px; margin-bottom: 18px; animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+    @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .success-title { font-family: 'DM Serif Display', serif; font-size: 28px; color: #fff; margin-bottom: 12px; }
+    .success-msg { font-size: 13px; color: rgba(232,240,254,0.75); line-height: 1.65; margin-bottom: 24px; max-width: 400px; margin-left: auto; margin-right: auto; }
+    .protocol-box { background: rgba(0,229,160,0.06); border: 1px solid rgba(0,229,160,0.2); border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; }
+    .protocol-label { font-size: 10px; letter-spacing: 2px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 6px; }
+    .protocol-num { font-family: 'JetBrains Mono', monospace; font-size: 20px; color: var(--green); letter-spacing: 2px; font-weight: 600; }
+    .success-info { display: flex; flex-direction: column; gap: 9px; margin-bottom: 28px; }
+    .info-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; justify-content: center; }
+    .btn-nova-denuncia { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--red), #FF8C42); border: none; border-radius: 11px; color: #fff; font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+    .btn-nova-denuncia:hover { opacity: 0.88; }
+
+    
+    @media (max-width: 767px) {
+      .denuncia-content { padding: 20px 16px 60px; }
+      .form-row { grid-template-columns: 1fr; gap: 0; }
+      .category-grid { grid-template-columns: repeat(2, 1fr); }
+      .denuncia-step-badge span { display: none; }
+      .modal-box { padding: 28px 20px 24px; }
+    }
+
+    
     #html5-qrcode-button-camera-permission, #html5-qrcode-button-camera-start, #html5-qrcode-button-camera-stop { background: linear-gradient(135deg, var(--green), var(--cyan)) !important; color: #070C18 !important; border: none !important; border-radius: 8px !important; padding: 7px 14px !important; font-family: 'Outfit', sans-serif !important; font-weight: 600 !important; cursor: pointer !important; margin: 6px !important; }
     #html5-qrcode-select-camera { background: var(--card) !important; color: var(--text) !important; border: 1px solid var(--border) !important; border-radius: 8px !important; padding: 5px 9px !important; font-family: 'Outfit', sans-serif !important; margin: 4px !important; }
 
+    
+    
     @media (min-width: 768px) { .mobile-layout { display: none; } .desktop-layout { display: flex; } }
+    
     @media (max-width: 767px) { .desktop-layout { display: none; } .mobile-layout { display: flex; } header { padding: 0 16px; } .header-badge span { display: none; } }
   </style>
 </head>
 <body>
 
+<!-- ── CABEÇALHO FIXO ── -->
 <header>
   <div class="logo-slot">
     <img src="1.png" alt="Logo"/>
@@ -181,15 +376,316 @@
     <div class="app-sub">Transparência Fiscal</div>
   </div>
   <div class="header-spacer"></div>
+  <button class="btn-denuncia-header" onclick="openDenunciaModal()">
+    <span class="denuncia-icon">⚠️</span>
+    <span>Denunciar</span>
+  </button>
   <div class="header-badge">
     <div class="badge-dot"></div>
     <span>Cosmos API</span>
   </div>
 </header>
 
+<!-- ══════════════════════════════════
+     MODAL DE EXPLICAÇÃO DA DENÚNCIA
+══════════════════════════════════ -->
+<div class="modal-overlay" id="denunciaModal" onclick="closeDenunciaModal(event)">
+  <div class="modal-box">
+    <div class="modal-icon-wrap">
+      <div class="modal-icon">⚖️</div>
+    </div>
+    <h2 class="modal-title">Denúncia de Impostos</h2>
+    <p class="modal-subtitle">Fiscalização cidadã · Transparência fiscal</p>
+    <div class="modal-body">
+      <p>Este canal permite que você <strong>questione ao governo</strong> por que os impostos arrecadados de determinado produto ou setor <strong>não estão sendo aplicados</strong> na área correspondente da sua cidade ou estado.</p>
+      <div class="modal-steps">
+        <div class="modal-step">
+          <div class="step-num">1</div>
+          <div class="step-text">Informe seu estado e CEP para identificar sua localidade</div>
+        </div>
+        <div class="modal-step">
+          <div class="step-num">2</div>
+          <div class="step-text">Selecione a área problemática (saúde, infraestrutura, educação…)</div>
+        </div>
+        <div class="modal-step">
+          <div class="step-num">3</div>
+          <div class="step-text">Descreva o problema e, quando aplicável, anexe uma foto</div>
+        </div>
+        <div class="modal-step">
+          <div class="step-num">4</div>
+          <div class="step-text">Sua denúncia é encaminhada ao Ministério da Transparência e ao TCU</div>
+        </div>
+      </div>
+      <div class="modal-disclaimer">
+        <span class="disclaimer-icon">🔒</span>
+        <span>Seus dados serão usados <strong>somente</strong> para fins desta denúncia, em conformidade com a LGPD. Esta plataforma é educacional — as informações são encaminhadas simbolicamente.</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeDenunciaModal()">Cancelar</button>
+      <button class="modal-btn-agree" onclick="goToDenuncia()">Concordo &amp; Continuar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     PÁGINA DE DENÚNCIA (OVERLAY)
+══════════════════════════════════ -->
+<div class="denuncia-page" id="denunciaPage">
+  <div class="denuncia-header">
+    <button class="denuncia-back" onclick="closeDenuncia()">← Voltar</button>
+    <div class="denuncia-header-title">
+      <span class="denuncia-header-icon">⚠️</span>
+      <div>
+        <div class="denuncia-title-main">Denúncia de Impostos</div>
+        <div class="denuncia-title-sub">Formulário Cidadão · Tributify</div>
+      </div>
+    </div>
+    <div class="denuncia-step-badge" id="stepBadge">Passo 1 / 3</div>
+  </div>
+
+  <div class="denuncia-content">
+    <!-- ── PASSO 1: LOCALIZAÇÃO ── -->
+    <div class="denuncia-step" id="step1">
+      <div class="step-header">
+        <div class="step-circle">1</div>
+        <div>
+          <div class="step-title">Sua Localização</div>
+          <div class="step-desc">Informe onde o problema ocorre</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Estado <span class="required">*</span></label>
+        <select class="form-select" id="fEstado" oninput="clearFieldError('fEstado', 'errEstado')">
+          <option value="">Selecione seu estado…</option>
+          <option value="AC">Acre (AC)</option>
+          <option value="AL">Alagoas (AL)</option>
+          <option value="AP">Amapá (AP)</option>
+          <option value="AM">Amazonas (AM)</option>
+          <option value="BA">Bahia (BA)</option>
+          <option value="CE">Ceará (CE)</option>
+          <option value="DF">Distrito Federal (DF)</option>
+          <option value="ES">Espírito Santo (ES)</option>
+          <option value="GO">Goiás (GO)</option>
+          <option value="MA">Maranhão (MA)</option>
+          <option value="MT">Mato Grosso (MT)</option>
+          <option value="MS">Mato Grosso do Sul (MS)</option>
+          <option value="MG">Minas Gerais (MG)</option>
+          <option value="PA">Pará (PA)</option>
+          <option value="PB">Paraíba (PB)</option>
+          <option value="PR">Paraná (PR)</option>
+          <option value="PE">Pernambuco (PE)</option>
+          <option value="PI">Piauí (PI)</option>
+          <option value="RJ">Rio de Janeiro (RJ)</option>
+          <option value="RN">Rio Grande do Norte (RN)</option>
+          <option value="RS">Rio Grande do Sul (RS)</option>
+          <option value="RO">Rondônia (RO)</option>
+          <option value="RR">Roraima (RR)</option>
+          <option value="SC">Santa Catarina (SC)</option>
+          <option value="SP">São Paulo (SP)</option>
+          <option value="SE">Sergipe (SE)</option>
+          <option value="TO">Tocantins (TO)</option>
+        </select>
+        <span class="field-error-msg" id="errEstado">⚠ Campo obrigatório</span>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">CEP <span class="required">*</span></label>
+          <input class="form-input" id="fCep" type="text" placeholder="00000-000" maxlength="9" oninput="formatCep(this); clearFieldError('fCep','errCep')" onblur="buscaCep(this.value)"/>
+          <span class="field-error-msg" id="errCep">⚠ Informe um CEP válido</span>
+          <div class="cep-result" id="cepResult"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Município <span class="required">*</span></label>
+          <input class="form-input" id="fCidade" type="text" placeholder="Preenchido via CEP" oninput="clearFieldError('fCidade','errCidade')"/>
+          <span class="field-error-msg" id="errCidade">⚠ Campo obrigatório</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Logradouro / Bairro</label>
+          <input class="form-input" id="fLogradouro" type="text" placeholder="Rua, Av., Bairro…"/>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <div></div>
+        <button class="btn-step-next" onclick="goStep(2)">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ── PASSO 2: IDENTIFICAÇÃO ── -->
+    <div class="denuncia-step" id="step2" style="display:none;">
+      <div class="step-header">
+        <div class="step-circle">2</div>
+        <div>
+          <div class="step-title">Seus Dados</div>
+          <div class="step-desc">Identificação do denunciante (opcional para anonimato)</div>
+        </div>
+      </div>
+
+      <div class="anon-toggle" id="anonToggle">
+        <label class="toggle-switch">
+          <input type="checkbox" id="anonCheck" onchange="toggleAnon(this.checked)"/>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+        <div>
+          <div class="toggle-label">Denúncia Anônima</div>
+          <div class="toggle-desc">Seus dados não serão vinculados à denúncia</div>
+        </div>
+      </div>
+
+      <div id="dadosPessoais">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Nome Completo <span class="required label-obrigatorio">*</span></label>
+            <input class="form-input" id="fNome" type="text" placeholder="Seu nome…" oninput="clearFieldError('fNome','errNome')"/>
+            <span class="field-error-msg" id="errNome">⚠ Campo obrigatório</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">CPF <span class="required label-obrigatorio">*</span></label>
+            <input class="form-input" id="fCpf" type="text" placeholder="000.000.000-00" maxlength="14" oninput="formatCpf(this); clearFieldError('fCpf','errCpf')"/>
+            <span class="field-error-msg" id="errCpf">⚠ Informe um CPF válido</span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">E-mail <span class="required label-obrigatorio">*</span></label>
+            <input class="form-input" id="fEmail" type="email" placeholder="seu@email.com" oninput="clearFieldError('fEmail','errEmail')"/>
+            <span class="field-error-msg" id="errEmail">⚠ Informe um e-mail válido</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Telefone <span class="required label-obrigatorio">*</span></label>
+            <input class="form-input" id="fTel" type="text" placeholder="(00) 00000-0000" maxlength="15" oninput="formatTel(this); clearFieldError('fTel','errTel')"/>
+            <span class="field-error-msg" id="errTel">⚠ Informe um telefone válido</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn-step-back" onclick="goStep(1)">← Anterior</button>
+        <button class="btn-step-next" onclick="goStep(3)">Próximo →</button>
+      </div>
+    </div>
+
+    <!-- ── PASSO 3: DESCRIÇÃO DO PROBLEMA ── -->
+    <div class="denuncia-step" id="step3" style="display:none;">
+      <div class="step-header">
+        <div class="step-circle">3</div>
+        <div>
+          <div class="step-title">O Problema</div>
+          <div class="step-desc">Descreva o que não está sendo resolvido com os impostos</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Área do Problema <span class="required">*</span></label>
+        <div class="category-grid" id="categoryGrid">
+          <div class="cat-item" data-cat="infraestrutura" onclick="selectCat(this)">
+            <div class="cat-icon">🛣️</div>
+            <div class="cat-name">Infraestrutura</div>
+            <div class="cat-desc">Ruas, pontes, calçadas, obras</div>
+          </div>
+          <div class="cat-item" data-cat="saude" onclick="selectCat(this)">
+            <div class="cat-icon">🏥</div>
+            <div class="cat-name">Saúde</div>
+            <div class="cat-desc">UBS, hospitais, medicamentos</div>
+          </div>
+          <div class="cat-item" data-cat="educacao" onclick="selectCat(this)">
+            <div class="cat-icon">📚</div>
+            <div class="cat-name">Educação</div>
+            <div class="cat-desc">Escolas, merenda, materiais</div>
+          </div>
+          <div class="cat-item" data-cat="saneamento" onclick="selectCat(this)">
+            <div class="cat-icon">💧</div>
+            <div class="cat-name">Saneamento</div>
+            <div class="cat-desc">Esgoto, água, coleta de lixo</div>
+          </div>
+          <div class="cat-item" data-cat="iluminacao" onclick="selectCat(this)">
+            <div class="cat-icon">💡</div>
+            <div class="cat-name">Iluminação</div>
+            <div class="cat-desc">Postes apagados, falta de luz</div>
+          </div>
+          <div class="cat-item" data-cat="seguranca" onclick="selectCat(this)">
+            <div class="cat-icon">🛡️</div>
+            <div class="cat-name">Segurança</div>
+            <div class="cat-desc">Policiamento, câmeras, bases</div>
+          </div>
+          <div class="cat-item" data-cat="assistencia" onclick="selectCat(this)">
+            <div class="cat-icon">🤝</div>
+            <div class="cat-name">Assistência Social</div>
+            <div class="cat-desc">CRAS, CAPS, benefícios</div>
+          </div>
+          <div class="cat-item" data-cat="outros" onclick="selectCat(this)">
+            <div class="cat-icon">📋</div>
+            <div class="cat-name">Outros</div>
+            <div class="cat-desc">Qualquer outra área pública</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Aparece para todas as categorias -->
+      <div class="form-group" id="descGroup" style="display:none;">
+        <label class="form-label">Descrição do Problema <span class="required">*</span></label>
+        <textarea class="form-textarea" id="fDesc" placeholder="Descreva detalhadamente o problema. Ex: A Rua X está com buracos desde 2023, já foram registradas 3 reclamações na prefeitura sem resposta…" rows="5"></textarea>
+        <div class="char-count"><span id="charCount">0</span> / 1000 caracteres</div>
+      </div>
+
+      <!-- Aparece apenas para categorias visíveis a olho nu -->
+      <div class="form-group" id="imgGroup" style="display:none;">
+        <label class="form-label">
+          Foto do Problema
+          <span class="label-badge">Recomendado para esta categoria</span>
+        </label>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('fImagem').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFile(event)">
+          <div class="upload-icon" id="uploadIcon">📸</div>
+          <div class="upload-text" id="uploadText">Clique ou arraste uma foto aqui</div>
+          <div class="upload-sub" id="uploadSub">JPG, PNG ou HEIC · máx. 10 MB</div>
+          <img class="upload-preview" id="uploadPreview" src="" alt="preview"/>
+        </div>
+        <input type="file" id="fImagem" accept="image/*" style="display:none;" onchange="previewImage(this)"/>
+        <button class="btn-remove-img" id="btnRemoveImg" style="display:none;" onclick="removeImage()">✕ Remover foto</button>
+      </div>
+
+      <div class="step-nav">
+        <button class="btn-step-back" onclick="goStep(2)">← Anterior</button>
+        <button class="btn-step-submit" onclick="submitDenuncia()">Enviar Denúncia 🚀</button>
+      </div>
+    </div>
+
+    <!-- ── TELA DE SUCESSO ── -->
+    <div class="denuncia-step" id="stepSuccess" style="display:none;">
+      <div class="success-card">
+        <div class="success-anim">✅</div>
+        <h2 class="success-title">Denúncia Registrada!</h2>
+        <p class="success-msg">Seu protocolo foi gerado com sucesso. A denúncia foi encaminhada simbolicamente ao <strong>Ministério da Transparência</strong> e ao <strong>TCU</strong>.</p>
+        <div class="protocol-box">
+          <div class="protocol-label">Número do Protocolo</div>
+          <div class="protocol-num" id="protocolNum">—</div>
+        </div>
+        <div class="success-info">
+          <div class="info-item">📧 Uma cópia será enviada ao e-mail informado (se fornecido)</div>
+          <div class="info-item">⏱️ Prazo de resposta: até 30 dias úteis</div>
+          <div class="info-item">🔍 Acompanhe pelo número do protocolo acima</div>
+        </div>
+        <button class="btn-nova-denuncia" onclick="novaDenuncia()">Fazer nova denúncia</button>
+        <button class="btn-step-back" onclick="closeDenuncia()" style="margin-top:10px;width:100%;text-align:center;">← Voltar ao Tributify</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="page">
 
+  <!-- ══════════════════════════════════
+       LAYOUT DESKTOP (duas colunas)
+  ══════════════════════════════════ -->
   <div class="desktop-layout">
+
+    <!-- Passei 30min para aprender a fazer. Coluna esquerda: scanner, busca e destino dos impostos -->
     <div class="col-left">
       <div class="scan-card">
         <div class="scan-card-header">
@@ -207,6 +703,8 @@
           <button class="btn btn-secondary" onclick="loadDemo()">Demo</button>
         </div>
       </div>
+
+      <!-- Campo de busca por nome ou código EAN -->
       <div class="search-wrap">
         <div class="search-row">
           <input class="search-input" id="inputD" type="text" placeholder="Buscar produto ou código EAN..." autocomplete="off" oninput="onSearch(this,'sugD')" onkeydown="onKey(event,'sugD','d')"/>
@@ -215,14 +713,19 @@
         <div class="loading-bar" id="loadBarD"></div>
         <div class="suggestions" id="sugD"></div>
       </div>
+
+      <!-- Destino dos impostos (preenchido após busca) -->
       <div class="destination-card" id="destD" style="display:none;"></div>
     </div>
+
+    <!-- Coluna direita: resultado do produto, preço e composição -->
     <div class="col-right">
       <div class="results" id="resultsD">
         <div class="product-info" id="prodD"></div>
         <div class="price-card"   id="priceD"></div>
         <div class="tax-bar-card" id="barD"></div>
       </div>
+      <!-- Exibido quando nenhum produto foi pesquisado -->
       <div class="empty-state" id="emptyD">
         <div class="icon">🔍</div>
         <h3>Nenhum produto</h3>
@@ -231,6 +734,9 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════
+       LAYOUT MOBILE (coluna única)
+  ══════════════════════════════════ -->
   <div class="mobile-layout">
     <div class="scan-card">
       <div class="scan-card-header">
@@ -248,6 +754,8 @@
         <button class="btn btn-secondary" onclick="loadDemo()">Demo</button>
       </div>
     </div>
+
+    <!-- Campo de busca mobile -->
     <div class="search-wrap">
       <div class="search-row">
         <input class="search-input" id="inputM" type="text" placeholder="Buscar produto ou código EAN..." autocomplete="off" oninput="onSearch(this,'sugM')" onkeydown="onKey(event,'sugM','m')"/>
@@ -256,12 +764,16 @@
       <div class="loading-bar" id="loadBarM"></div>
       <div class="suggestions" id="sugM"></div>
     </div>
+
+    <!-- Resultados mobile -->
     <div class="results" id="resultsM">
       <div class="product-info" id="prodM"></div>
       <div class="price-card"   id="priceM"></div>
       <div class="tax-bar-card" id="barM"></div>
       <div class="destination-card" id="destM"></div>
     </div>
+
+    <!-- Estado vazio mobile -->
     <div class="empty-state" id="emptyM">
       <div class="icon">🔍</div>
       <h3>Nenhum produto</h3>
@@ -272,11 +784,13 @@
   <div class="footer-note">tributify · powered by cosmos api · © 2026</div>
 </div>
 
+<!-- Notificação temporária (toast) -->
 <div class="toast" id="toast"></div>
 
 <script>
-const COSMOS_TOKEN = "I9Y5s0Ottjw3s_AR6gacUQ";
-const PROXY = "https://corsproxy.io/?url=";
+
+const COSMOS_TOKEN = "I9Y5s0Ottjw3s_AR6gacUQ"; 
+const PROXY = "https://corsproxy.io/?url=";     
 
 const DESTS = [
   { name:"Saúde (SUS)",        pct:30, color:"#00E5A0", icon:"🏥", bg:"rgba(0,229,160,0.12)"   },
@@ -295,7 +809,7 @@ const DEMO_DATA = {
 };
 
 const sc = {d:null, m:null}, running = {d:false, m:false};
-let searchTimer = null;
+let searchTimer = null; 
 
 function toggleScan(k) { running[k] ? stopScan(k) : startScan(k); }
 
@@ -351,6 +865,7 @@ function onSearch(input, sugId) {
   const q = input.value.trim();
   const box = document.getElementById(sugId);
   clearTimeout(searchTimer);
+  
   if (!q || /^\d{6,}$/.test(q)) { box.classList.remove("open"); return; }
 
   searchTimer = setTimeout(async () => {
@@ -362,6 +877,7 @@ function onSearch(input, sugId) {
       box.classList.add("open");
       return;
     }
+    
     box.innerHTML = results.slice(0,6).map(p => `
       <div class="suggestion-item" onclick="selectFromSuggestion('${p.gtin || p.code}','${sugId}')">
         <span class="sug-icon">${p.thumbnail ? `<img src="${p.thumbnail}" style="width:28px;height:28px;object-fit:contain;border-radius:6px;">` : "📦"}</span>
@@ -369,7 +885,6 @@ function onSearch(input, sugId) {
           <span class="sug-name">${p.description || p.name || "Produto"}</span>
           <span class="sug-brand">${p.brand?.name || ""}</span>
         </div>
-        ${p.avg_price ? `<span class="sug-price">${fmt(p.avg_price)}</span>` : ""}
       </div>`).join("");
     box.classList.add("open");
   }, 1000);
@@ -420,11 +935,14 @@ function renderResults(data) {
   const ncmDesc  = data.ncm?.description || "";
   const thumb    = data.thumbnail || null;
   const taxes    = getTaxes(data);
-  const taxRate  = Object.values(taxes).reduce((a,b)=>a+b,0);
+  const taxRate  = Object.values(taxes).reduce((a,b)=>a+b,0); 
+
+  
   const iconHTML = thumb
     ? `<img class="product-thumb" src="${thumb}" alt="${name}" onerror="this.outerHTML='<div class=\\'product-icon\\'>📦</div>'">`
     : `<div class="product-icon">📦</div>`;
 
+  
   const prodHTML = `
     ${iconHTML}
     <div class="product-details">
@@ -433,9 +951,11 @@ function renderResults(data) {
       ${ncmCode ? `<span class="product-ncm">NCM ${ncmCode}</span>` : ""}
     </div>`;
 
+  
   const taxBadges = Object.entries(taxes).filter(([,v])=>v>0)
     .map(([k,v])=>`<span class="tax-badge">${k.toUpperCase()} ${v}%</span>`).join(" ");
 
+  
   const priceHTML = `
     <div class="price-input-card">
       <div class="price-input-label">
@@ -474,6 +994,7 @@ function renderResults(data) {
       </div>
     </div>`;
 
+  
   const barHTML = `
     <div class="section-title">Composição do preço</div>
     <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
@@ -482,6 +1003,7 @@ function renderResults(data) {
       <span>Impostos <strong id="barTax" style="color:var(--red)">—</strong></span>
     </div>`;
 
+  
   const destHTML = `
     <div class="section-title">Para onde vai seu imposto</div>
     <div class="dest-list">
@@ -499,21 +1021,24 @@ function renderResults(data) {
           </div>
         </div>`).join("")}
     </div>`;
-  
 
+  
   ["D","M"].forEach(k => {
     const suffix = k.toLowerCase();
+
+    
     const pHTML = priceHTML
-      .replace(/id="priceField"/g, `id="priceField-${suffix}"`)
+      .replace(/id="priceField"/g,  `id="priceField-${suffix}"`)
       .replace(/id="priceResults"/g, `id="priceResults-${suffix}"`)
-      .replace(/id="rTotal"/g, `id="rTotal-${suffix}"`)
-      .replace(/id="rTax"/g, `id="rTax-${suffix}"`)
-      .replace(/id="rBase"/g, `id="rBase-${suffix}"`)
-      .replace(/recalc\([\d.]+\)/g, `recalc(${taxRate},'${suffix}')`);
+      .replace(/id="rTotal"/g,       `id="rTotal-${suffix}"`)
+      .replace(/id="rTax"/g,         `id="rTax-${suffix}"`)
+      .replace(/id="rBase"/g,        `id="rBase-${suffix}"`)
+      .replace(/recalc\([\d.]+\)/g,  `recalc(${taxRate},'${suffix}')`);
+
     const bHTML = barHTML
       .replace(/id="barFill"/g, `id="barFill-${suffix}"`)
       .replace(/id="barProd"/g, `id="barProd-${suffix}"`)
-      .replace(/id="barTax"/g, `id="barTax-${suffix}"`);
+      .replace(/id="barTax"/g,  `id="barTax-${suffix}"`);
 
     document.getElementById("prod"+k).innerHTML  = prodHTML;
     document.getElementById("price"+k).innerHTML = pHTML;
@@ -524,6 +1049,7 @@ function renderResults(data) {
     document.getElementById("results"+k).classList.add("visible");
   });
 
+  
   requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll(".dest-bar-fill").forEach(el => el.style.width = el.dataset.pct+"%");
   }));
@@ -534,7 +1060,11 @@ function recalc(taxRate, suffix) {
   if (!input) return;
   const total = parseFloat(input.value) || 0;
   const resultsEl = document.getElementById("priceResults-"+suffix);
+
+  
   const g = id => document.getElementById(id+"-"+suffix);
+
+  
   if (!total) {
     if (resultsEl) resultsEl.style.display = "none";
     g("barFill") && (g("barFill").style.width = "0%");
@@ -543,11 +1073,14 @@ function recalc(taxRate, suffix) {
     DESTS.forEach(d => document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = ""));
     return;
   }
-  const multiplier = 1 + (taxRate / 100);
-  const base   = total / multiplier;
-  const taxAmt = total - base;
-  const taxPct = ((taxAmt / total) * 100).toFixed(1);
 
+  
+  const multiplier = 1 + (taxRate / 100);
+  const base   = total / multiplier;           
+  const taxAmt = total - base;                 
+  const taxPct = ((taxAmt / total) * 100).toFixed(1); 
+
+  
   if (resultsEl) resultsEl.style.display = "block";
   g("rTotal") && (g("rTotal").textContent = fmt(total));
   g("rTax")   && (g("rTax").textContent   = "-"+fmt(taxAmt));
@@ -555,6 +1088,8 @@ function recalc(taxRate, suffix) {
   g("barFill") && (g("barFill").style.width = taxPct+"%");
   g("barProd") && (g("barProd").textContent = (100-taxPct).toFixed(1)+"%");
   g("barTax")  && (g("barTax").textContent  = taxPct+"%");
+
+  
   DESTS.forEach(d => {
     const val = taxAmt * d.pct / 100;
     document.querySelectorAll(".dest-val-"+d.pct).forEach(el => el.textContent = " · "+fmt(val));
@@ -570,6 +1105,241 @@ function showToast(msg, error=false) {
   t.classList.toggle("error", error);
   t.classList.add("show");
   setTimeout(() => { t.classList.remove("show"); t.classList.remove("error"); }, 2500);
+}
+
+function openDenunciaModal() {
+  document.getElementById("denunciaModal").classList.add("open");
+}
+
+function closeDenunciaModal(event) {
+  if (event && event.target !== document.getElementById("denunciaModal")) return;
+  document.getElementById("denunciaModal").classList.remove("open");
+}
+
+function goToDenuncia() {
+  document.getElementById("denunciaModal").classList.remove("open");
+  document.getElementById("denunciaPage").classList.add("open");
+  goStep(1);
+}
+
+function closeDenuncia() {
+  document.getElementById("denunciaPage").classList.remove("open");
+}
+
+function goStep(n) {
+  if (n === 2 && !validarStep1()) return;
+  if (n === 3 && !validarStep2()) return;
+
+  ["step1","step2","step3","stepSuccess"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
+
+  const target = n === "success" ? "stepSuccess" : "step" + n;
+  const el = document.getElementById(target);
+  if (el) { el.style.display = "block"; el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+
+  const labels = { 1: "Passo 1 / 3", 2: "Passo 2 / 3", 3: "Passo 3 / 3", success: "Concluído ✓" };
+  document.getElementById("stepBadge").textContent = labels[n] || "";
+}
+
+function setFieldError(inputId, errId) {
+  const el = document.getElementById(inputId);
+  const err = document.getElementById(errId);
+  if (el) el.classList.add("field-error");
+  if (err) err.classList.add("visible");
+}
+
+function clearFieldError(inputId, errId) {
+  const el = document.getElementById(inputId);
+  const err = document.getElementById(errId);
+  if (el) el.classList.remove("field-error");
+  if (err) err.classList.remove("visible");
+}
+
+function validarStep1() {
+  const estado = document.getElementById("fEstado").value;
+  const cep    = document.getElementById("fCep").value.replace(/\D/g,"");
+  const cidade = document.getElementById("fCidade").value.trim();
+  let ok = true;
+  if (!estado) { setFieldError("fEstado","errEstado"); ok = false; } else clearFieldError("fEstado","errEstado");
+  if (cep.length < 8) { setFieldError("fCep","errCep"); ok = false; } else clearFieldError("fCep","errCep");
+  if (!cidade) { setFieldError("fCidade","errCidade"); ok = false; } else clearFieldError("fCidade","errCidade");
+  return ok;
+}
+
+function validarStep2() {
+  const anonimo = document.getElementById("anonCheck").checked;
+  if (anonimo) return true;
+  const nome  = document.getElementById("fNome").value.trim();
+  const cpf   = document.getElementById("fCpf").value.replace(/\D/g,"");
+  const email = document.getElementById("fEmail").value.trim();
+  const tel   = document.getElementById("fTel").value.replace(/\D/g,"");
+  let ok = true;
+  if (!nome)                        { setFieldError("fNome","errNome");   ok = false; } else clearFieldError("fNome","errNome");
+  if (cpf.length !== 11)            { setFieldError("fCpf","errCpf");    ok = false; } else clearFieldError("fCpf","errCpf");
+  if (!email || !email.includes("@")){ setFieldError("fEmail","errEmail"); ok = false; } else clearFieldError("fEmail","errEmail");
+  if (tel.length < 10)              { setFieldError("fTel","errTel");    ok = false; } else clearFieldError("fTel","errTel");
+  return ok;
+} 
+
+function toggleAnon(checked) {
+  document.getElementById("dadosPessoais").style.display = checked ? "none" : "block";
+  document.querySelectorAll(".label-obrigatorio").forEach(el => {
+    el.style.display = checked ? "none" : "inline";
+  });
+}
+
+function formatCep(input) {
+  let v = input.value.replace(/\D/g,"").slice(0,8);
+  if (v.length > 5) v = v.slice(0,5) + "-" + v.slice(5);
+  input.value = v;
+}
+
+async function buscaCep(cep) {
+  const digits = cep.replace(/\D/g,"");
+  if (digits.length !== 8) return;
+  const result = document.getElementById("cepResult");
+  result.textContent = "Buscando…";
+  try {
+    const r = await fetch(`${PROXY}https://viacep.com.br/ws/${digits}/json/`);
+    const d = await r.json();
+    if (d.erro) { result.textContent = "CEP não encontrado"; return; }
+    document.getElementById("fCidade").value    = d.localidade || "";
+    document.getElementById("fLogradouro").value = (d.logradouro ? d.logradouro + (d.bairro ? ", " + d.bairro : "") : d.bairro || "");
+    
+    const sel = document.getElementById("fEstado");
+    if (d.uf) sel.value = d.uf;
+    result.textContent = "✓ Endereço encontrado";
+    setTimeout(() => result.textContent = "", 3000);
+  } catch { result.textContent = "Erro ao buscar CEP"; }
+}
+
+function formatCpf(input) {
+  let v = input.value.replace(/\D/g,"").slice(0,11);
+  v = v.replace(/(\d{3})(\d)/, "$1.$2")
+       .replace(/(\d{3})(\d)/, "$1.$2")
+       .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  input.value = v;
+}
+
+function formatTel(input) {
+  let v = input.value.replace(/\D/g,"").slice(0,11);
+  if (v.length >= 7) v = "(" + v.slice(0,2) + ") " + v.slice(2,7) + (v.length > 7 ? "-" + v.slice(7) : "");
+  else if (v.length >= 3) v = "(" + v.slice(0,2) + ") " + v.slice(2);
+  input.value = v;
+}
+
+const CATS_COM_FOTO = ["infraestrutura","saneamento","iluminacao","saude"];
+
+function selectCat(el) {
+  document.querySelectorAll(".cat-item").forEach(c => c.classList.remove("selected"));
+  el.classList.add("selected");
+  const cat = el.dataset.cat;
+
+  document.getElementById("descGroup").style.display = "block";
+
+  const imgGroup = document.getElementById("imgGroup");
+  imgGroup.style.display = CATS_COM_FOTO.includes(cat) ? "block" : "none";
+
+  
+  const placeholders = {
+    infraestrutura: "Descreva o problema de infraestrutura. Ex: A Rua X tem buracos desde 2023, já foram feitas 3 reclamações sem resposta…",
+    saude:          "Descreva o problema de saúde. Ex: O Posto de Saúde do Bairro Y está fechado há 2 meses por falta de médicos…",
+    educacao:       "Descreva o problema de educação. Ex: A Escola Z não recebe material didático há um semestre…",
+    saneamento:     "Descreva o problema de saneamento. Ex: Há esgoto a céu aberto na Rua W desde janeiro…",
+    iluminacao:     "Descreva o problema de iluminação. Ex: 5 postes estão apagados na Av. X há 3 semanas…",
+    seguranca:      "Descreva o problema de segurança. Ex: Não há patrulhamento no Bairro Y, crimes aumentaram 40%…",
+    assistencia:    "Descreva o problema de assistência social. Ex: O CRAS do bairro fechou sem aviso e famílias ficaram sem atendimento…",
+    outros:         "Descreva detalhadamente o problema e como ele está relacionado à má aplicação dos impostos…",
+  };
+  document.getElementById("fDesc").placeholder = placeholders[cat] || placeholders.outros;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const ta = document.getElementById("fDesc");
+  if (ta) {
+    ta.addEventListener("input", () => {
+      const len = Math.min(ta.value.length, 1000);
+      ta.value = ta.value.slice(0, 1000);
+      document.getElementById("charCount").textContent = len;
+    });
+  }
+});
+
+function previewImage(input) {
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  if (file.size > 10 * 1024 * 1024) { showToast("Imagem muito grande (máx 10 MB)", true); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById("uploadPreview");
+    img.src = e.target.result;
+    const area = document.getElementById("uploadArea");
+    area.classList.add("has-image");
+    document.getElementById("btnRemoveImg").style.display = "inline-block";
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeImage() {
+  document.getElementById("fImagem").value = "";
+  document.getElementById("uploadPreview").src = "";
+  document.getElementById("uploadArea").classList.remove("has-image");
+  document.getElementById("btnRemoveImg").style.display = "none";
+}
+
+function dragOver(e) { e.preventDefault(); document.getElementById("uploadArea").classList.add("drag-over"); }
+function dragLeave()  { document.getElementById("uploadArea").classList.remove("drag-over"); }
+function dropFile(e)  {
+  e.preventDefault();
+  document.getElementById("uploadArea").classList.remove("drag-over");
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    const input = document.getElementById("fImagem");
+    input.files = dt.files;
+    previewImage(input);
+  }
+}
+
+function submitDenuncia() {
+  const catSel = document.querySelector(".cat-item.selected");
+  if (!catSel) { showToast("Selecione a área do problema", true); return; }
+  const desc = document.getElementById("fDesc").value.trim();
+  if (!desc) { showToast("Descreva o problema antes de enviar", true); return; }
+
+  
+  const hoje = new Date();
+  const ymd = hoje.getFullYear().toString() +
+    String(hoje.getMonth()+1).padStart(2,"0") +
+    String(hoje.getDate()).padStart(2,"0");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  document.getElementById("protocolNum").textContent = `TRB-${ymd}-${rand}`;
+
+  goStep("success");
+}
+
+function novaDenuncia() {
+  document.getElementById("fEstado").value = "";
+  document.getElementById("fCep").value = "";
+  document.getElementById("fCidade").value = "";
+  document.getElementById("fLogradouro").value = "";
+  document.getElementById("fNome").value = "";
+  document.getElementById("fCpf").value = "";
+  document.getElementById("fEmail").value = "";
+  document.getElementById("fTel").value = "";
+  document.getElementById("fDesc").value = "";
+  document.getElementById("charCount").textContent = "0";
+  document.getElementById("cepResult").textContent = "";
+  removeImage();
+  document.querySelectorAll(".cat-item").forEach(c => c.classList.remove("selected"));
+  document.getElementById("descGroup").style.display = "none";
+  document.getElementById("imgGroup").style.display = "none";
+  document.getElementById("anonCheck").checked = false;
+  document.getElementById("dadosPessoais").style.display = "block";
+  goStep(1);
 }
 </script>
 </body>
